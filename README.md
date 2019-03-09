@@ -86,6 +86,33 @@ func myEndpoint(_ req: Request) throws -> Future<HTTPStatus> {
 }
 ```
 
+### How to do something in the database every 5 minutes?
+
+```swift
+import Vapor
+import VaporCron
+
+struct Every5MinJob: VaporCronSchedulable {
+    static var expression: String { return "*/5 * * * *" } // every 5 minutes
+    
+    static func task(on container: VaporCronContainer) -> Future<Void> {
+        // this is how you could get a connection to the database
+        return container.requestPooledConnection(to: .psql).flatMap { conn in
+            // this is how to close taken pooled connection
+            defer { try? container.releasePooledConnection(conn, to: .psql) }
+            // here you sould do whatever you want cause you already have a connection to database
+            // it's just an example below
+            return User.query(on: conn).all().flatMap { users in
+                return users.map { user in
+                    user.updatedAt = Date()
+                    return user.save(on: conn).transform(to: Void.self)
+                }.flatten(on: container)
+            }
+        }
+    }
+}
+```
+
 ## Dependencies
 
 - [NIOCronScheduler](https://github.com/MihaelIsaev/NIOCronScheduler)
