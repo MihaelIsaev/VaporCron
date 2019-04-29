@@ -103,7 +103,7 @@ struct Every5MinJob: VaporCronSchedulable {
             return User.query(on: conn).all().flatMap { users in
                 return users.map { user in
                     user.updatedAt = Date()
-                    return user.save(on: conn).transform(to: Void.self)
+                    return user.save(on: conn).transform(to: ())
                 }.flatten(on: container)
             }
         }.always {
