@@ -5,7 +5,7 @@
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="MIT License">
     </a>
     <a href="https://swift.org">
-        <img src="https://img.shields.io/badge/swift-4.2-brightgreen.svg" alt="Swift 4.2">
+        <img src="https://img.shields.io/badge/swift-5.1-brightgreen.svg" alt="Swift 5.1">
     </a>
 </p>
 
@@ -13,12 +13,16 @@
 
 #### Support this lib by giving a ⭐️
 
+Built for Vapor4
+
+> 💡Vapor3 version is available in `vapor3` branch and from `1.0.0` tag
+
 ## How to install
 
 ### Swift Package Manager
 
 ```swift
-.package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"1.0.0")
+.package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.0.0")
 ```
 In your target's dependencies add `"VaporCron"` e.g. like this:
 ```swift
@@ -31,29 +35,32 @@ In your target's dependencies add `"VaporCron"` e.g. like this:
 ```swift
 import VaporCron
 
-let job = try? VaporCron.schedule("* * * * *", on: eventLoop) {
+let job = try app.cron.schedule("* * * * *") {
     print("Closure fired")
 }
 ```
 
 ### Complex job in dedicated struct
 ```swift
+import Vapor
 import VaporCron
 
 /// Your job should conform to `VaporCronSchedulable`
 struct ComplexJob: VaporCronSchedulable {
-    static var expression: String { return "*/2 * * * *" }
+    static var expression: String { "* * * * *" }
 
-    static func task(on container: VaporCronContainer) -> Future<Void> { // Void is not a requirement, you may return any type
-        return eventLoop.newSucceededFuture(result: ()).always {
+    static func task(on application: Application) -> EventLoopFuture<Void> {
+        return application.eventLoopGroup.future().always { _ in
             print("ComplexJob fired")
         }
     }
 }
-let complexJob = try? VaporCron.schedule(ComplexJob.self, on: app)
+let complexJob = try app.cron.schedule(ComplexJob.self)
 ```
 
-Scheduled job may be cancelled just by calling `.cancel()`
+> 💡you also could call `req.cron.schedule(...)``
+
+> 💡💡Scheduled job may be cancelled just by calling `.cancel()`
 
 ## Where to define
 
@@ -63,13 +70,13 @@ You could define all cron jobs in your `boot.swift` cause here is `app: Applicat
 import Vapor
 import VaporCron
 
-/// Called after your application has initialized.
-public func boot(_ app: Application) throws {
-    let complexJob = try? VaporCron.schedule(ComplexJob.self, on: app)
+// Called before your application initializes.
+func configure(_ app: Application) throws {
+    let complexJob = try app.cron.schedule(ComplexJob.self)
     /// This example code will cancel scheduled job after 185 seconds
     /// so in a console you'll see "Closure fired" three times only
-    app.eventLoop.scheduleTask(in: .seconds(185)) {
-        complexJob?.cancel()
+    app.eventLoopGroup.next().scheduleTask(in: .seconds(185)) {
+        complexJob.cancel()
     }
 }
 ```
@@ -81,7 +88,7 @@ import Vapor
 import VaporCron
 
 func myEndpoint(_ req: Request) throws -> Future<HTTPStatus> {
-    try VaporCron.schedule(ComplexJob.self, on: req)
+    try req.cron.schedule(ComplexJob.self)
     return .ok
 }
 ```
@@ -93,22 +100,11 @@ import Vapor
 import VaporCron
 
 struct Every5MinJob: VaporCronSchedulable {
-    static var expression: String { return "*/5 * * * *" } // every 5 minutes
-    
-    static func task(on container: VaporCronContainer) -> Future<Void> {
-        // this is how you could get a connection to the database
-        return container.requestPooledConnection(to: .psql).flatMap { conn in
-            // here you sould do whatever you want cause you already have a connection to database
-            // it's just an example below
-            return User.query(on: conn).all().flatMap { users in
-                return users.map { user in
-                    user.updatedAt = Date()
-                    return user.save(on: conn).transform(to: ())
-                }.flatten(on: container)
-            }
-        }.always {
-            // this is how to close taken pooled connection
-            try? container.releasePooledConnection(conn, to: .psql)
+    static var expression: String { "*/5 * * * *" } // every 5 minutes
+
+    static func task(on application: Application) -> Future<Void> {
+        application.db.query(Todo.self).all().map { rows in
+            print("ComplexJob fired, found \(rows.count) todos")
         }
     }
 }
