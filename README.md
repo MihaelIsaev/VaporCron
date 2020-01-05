@@ -73,9 +73,9 @@ import VaporCron
 // Called before your application initializes.
 func configure(_ app: Application) throws {
     let complexJob = try app.cron.schedule(ComplexJob.self)
-    /// This example code will cancel scheduled job after 185 seconds
+    /// This example code will cancel scheduled job after 120 seconds
     /// so in a console you'll see "Closure fired" three times only
-    app.eventLoopGroup.next().scheduleTask(in: .seconds(185)) {
+    app.eventLoopGroup.next().scheduleTask(in: .seconds(120)) {
         complexJob.cancel()
     }
 }
