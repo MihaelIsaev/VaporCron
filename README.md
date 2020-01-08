@@ -86,10 +86,10 @@ Some jobs you may want to schedule from some request handler like this
 ```swift
 import Vapor
 import VaporCron
-
-func myEndpoint(_ req: Request) throws -> Future<HTTPStatus> {
-    try req.cron.schedule(ComplexJob.self)
-    return .ok
+func routes(_ app: Application) throws {
+    app.get("test") { req -> HTTPStatus in
+        try req.cron.schedule(ComplexJob.self).transform(to: .ok)
+    }
 }
 ```
 
