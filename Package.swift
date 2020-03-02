@@ -17,7 +17,12 @@ let package = Package(
         .package(url: "https://github.com/MihaelIsaev/NIOCronScheduler.git", from:"2.0.0"),
     ],
     targets: [
-        .target(name: "VaporCron", dependencies: ["Vapor", "NIOCronScheduler"]),
-        .testTarget(name: "VaporCronTests", dependencies: ["VaporCron"]),
+        .target(name: "VaporCron", dependencies: [
+            .product(name: "Vapor", package: "vapor"),
+            .product(name: "NIOCronScheduler", package: "NIOCronScheduler"),
+        ]),
+        .testTarget(name: "VaporCronTests", dependencies: [
+            .target(name: "VaporCron")
+        ]),
     ]
 )
