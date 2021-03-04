@@ -48,7 +48,7 @@ let job = try app.cron.schedule("* * * * *") {
 import Vapor
 import VaporCron
 
-/// Your job should conform to `VaporCronSchedulable`
+/// Your job should conform to `VaporCronSchedulable` or `VaporCronInstanceSchedulable`
 struct ComplexJob: VaporCronSchedulable {
     static var expression: String { "* * * * *" }
 
@@ -59,6 +59,23 @@ struct ComplexJob: VaporCronSchedulable {
     }
 }
 let complexJob = try app.cron.schedule(ComplexJob.self)
+
+struct ComplexInstanceJob: VaporCronInstanceSchedulable {
+    static var expression: String { "* * * * *" }
+
+    private let application: Application
+    
+    init(application: Application) {
+        self.application = application
+    }
+
+    func task() -> EventLoopFuture<Void> {
+        return application.eventLoopGroup.future().always { _ in
+            print("ComplexJob fired")
+        }
+    }
+}
+let complexInstanceJob = try app.cron.schedule(ComplexInstanceJob.self)
 ```
 
 > 💡you also could call `req.cron.schedule(...)``
