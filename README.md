@@ -81,6 +81,26 @@ let complexInstanceJob = try app.cron.schedule(ComplexInstanceJob.self)
 > 💡you also could call `req.cron.schedule(...)``
 
 > 💡💡Scheduled job may be cancelled just by calling `.cancel()`
+ 
+### Concurrency (swift>=5.5)
+
+use `AsyncVaporCronSchedulable` instead `VaporCronSchedulable`
+
+use `AsyncVaporCronInstanceSchedulable` instead `VaporCronInstanceSchedulable`
+
+```swift
+public struct TestCron: AsyncVaporCronSchedulable {
+    public typealias T = Void
+    
+    public static var expression: String {
+        "*/1 * * * *"
+    }
+    
+    public static func task(on application: Application) async throws -> Void {
+        application.logger.info("\(Self.self) is running...")
+    }
+}
+``` 
 
 ## Where to define
 
