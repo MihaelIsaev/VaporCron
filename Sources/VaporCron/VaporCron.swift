@@ -50,7 +50,8 @@ extension Request {
 
 public protocol VaporCronInstanceSchedulable: NIOCronExpressable {
     associatedtype T
-
+    
+    var application: Application { get }
     init(application: Application)
 
     @discardableResult

@@ -23,16 +23,16 @@ extension AsyncVaporCronSchedulable {
 // MARK: VaporCronInstanceSchedulable
 @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
 public protocol AsyncVaporCronInstanceSchedulable: VaporCronInstanceSchedulable {
-    func task(on application: Application) async throws -> T
+    func task() async throws -> T
 }
 
 @available(macOS 12, iOS 15, watchOS 8, tvOS 15, *)
 extension AsyncVaporCronInstanceSchedulable {
     
-    public func task(on application: Application) -> EventLoopFuture<T> {
+    public func task() -> EventLoopFuture<T> {
         let promise = application.eventLoopGroup.next().makePromise(of: T.self)
         promise.completeWithTask {
-            try await task(on: application)
+            try await task()
         }
         return promise.futureResult
     }
