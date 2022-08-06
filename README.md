@@ -26,6 +26,8 @@ Built for Vapor4
 
 ```swift
 .package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.0.0")
+// or for seconds support
+.package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.0.0-s.1.0.0")
 ```
 In your target's dependencies add `"VaporCron"` e.g. like this:
 ```swift
@@ -38,7 +40,7 @@ In your target's dependencies add `"VaporCron"` e.g. like this:
 ```swift
 import VaporCron
 
-let job = try app.cron.schedule("* * * * *") {
+let job = try app.cron.schedule("* * * * *") { // or add one more * to launch every second
     print("Closure fired")
 }
 ```
@@ -50,7 +52,7 @@ import VaporCron
 
 /// Your job should conform to `VaporCronSchedulable` or `VaporCronInstanceSchedulable`
 struct ComplexJob: VaporCronSchedulable {
-    static var expression: String { "* * * * *" }
+    static var expression: String { "* * * * *" } // or add one more * to launch every second
 
     static func task(on application: Application) -> EventLoopFuture<Void> {
         return application.eventLoopGroup.future().always { _ in
@@ -61,7 +63,7 @@ struct ComplexJob: VaporCronSchedulable {
 let complexJob = try app.cron.schedule(ComplexJob.self)
 
 struct ComplexInstanceJob: VaporCronInstanceSchedulable {
-    static var expression: String { "* * * * *" }
+    static var expression: String { "* * * * *" } // or add one more * to launch every second
 
     private let application: Application
     
@@ -93,7 +95,7 @@ public struct TestCron: AsyncVaporCronSchedulable {
     public typealias T = Void
     
     public static var expression: String {
-        "*/1 * * * *"
+        "*/1 * * * *" // or add one more * to launch every 1st second
     }
     
     public static func task(on application: Application) async throws -> Void {
