@@ -25,9 +25,7 @@ Built for Vapor4
 ### Swift Package Manager
 
 ```swift
-.package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.0.0")
-// or for seconds support
-.package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.0.0-s.1.0.0")
+.package(url: "https://github.com/MihaelIsaev/VaporCron.git", from:"2.6.0")
 ```
 In your target's dependencies add `"VaporCron"` e.g. like this:
 ```swift
